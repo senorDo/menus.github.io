@@ -25,6 +25,13 @@
       border: none;
       background: none;
     }
+    /* Nuevos estilos para quitar el borde de los desplegables */
+    select {
+      border: none;
+      outline: none;
+      background: none;
+      font-size:16px;
+    }
     textarea, input {
       font-family: Arial, sans-serif;
       border: none;
@@ -98,10 +105,15 @@
   <textarea id="tituloEditable" style="width: 90%; overflow: hidden;text-overflow: ellipsis; box-sizing: border-box; resize: none; font-size: 1.5em; font-weight: bold;" oninput="ajustarAltura(this)"></textarea>
 </div>
 
-  <!-- Cantidades e Ingredientes -->
-  <div id="edicionIngredientes">
-    <!-- Aquí se añadirán los campos de edición dinámicamente -->
-  </div>
+ <!-- Cantidades -->
+<div id="edicionCantidades">
+  <!-- Aquí se añadirán los campos de edición de cantidades dinámicamente -->
+</div>
+
+<!-- Ingredientes -->
+<div id="edicionIngredientes">
+  <!-- Aquí se añadirán los campos de edición de ingredientes dinámicamente -->
+</div>
 
   <!-- Botón de agregar campo de edición -->
   <button onclick="agregarCampoEdicion()">Agregar Ingrediente</button>
@@ -112,29 +124,18 @@
   
   <!-- Botón de guardar nueva receta -->
 <button onclick="limpiarDatosTituloIngredientes()">Limpiar Ingredientes</button>
+  
+  
 
   <script>
+    
+    
     function ajustarAltura(elemento) {
   elemento.style.height = 'auto';
   elemento.style.height = (elemento.scrollHeight) + 'px';
 }
   
-    // Llenar el textarea con el valor inicial de la tabla
-    const tituloReceta = document.getElementById('tituloReceta');
-    const tituloEditable = document.getElementById('tituloEditable');
-    tituloEditable.value = tituloReceta.innerText;
-
-    // Obtener las cantidades e ingredientes de la columna 9
-    const ingredientesReceta = document.getElementById('ingredientesReceta');
-    const cantidadesIngredientes = ingredientesReceta.innerText.split(', ');
-
-    // Llenar la sección de edición con las cantidades e ingredientes
-  const seccionIngredientes = document.getElementById('edicionIngredientes');
-  cantidadesIngredientes.forEach((item, index) => {
-    const [cantidad, ...resto] = item.split(' ');
-    const ingrediente = resto.join(' '); // Unir las palabras del ingrediente
-    agregarCampoEdicion(cantidad, ingrediente);
-    });
+    
 
     function hacerEditable(id) {
       const elemento = document.getElementById(id);
@@ -156,6 +157,27 @@
       }
     }
 
+    // Agrega tus opciones de ingredientes aquí
+    const opcionesIngredientes = ["Queso de cabra", "Espinacas", "Patatas cocidas", "Nueces", "Aceite de Oliva Virgen Extra", "Tomate", "Manzana", "Vinagre Balsámico de Módena"];
+
+    // Llenar el textarea con el valor inicial de la tabla
+    const tituloReceta = document.getElementById('tituloReceta');
+    const tituloEditable = document.getElementById('tituloEditable');
+    tituloEditable.value = tituloReceta.innerText;
+
+    // Obtener las cantidades e ingredientes de la columna 9
+    const ingredientesReceta = document.getElementById('ingredientesReceta');
+    const cantidadesIngredientes = ingredientesReceta.innerText.split(', ');
+
+    // Llenar la sección de edición con las cantidades e ingredientes
+    const seccionIngredientes = document.getElementById('edicionIngredientes');
+    cantidadesIngredientes.forEach((item, index) => {
+      const [cantidad, ...resto] = item.split(' ');
+      const ingrediente = resto.join(' '); // Unir las palabras del ingrediente
+      agregarCampoEdicion(cantidad, ingrediente);
+    });
+
+    // Función para agregar un campo de edición con desplegables
     function agregarCampoEdicion(cantidad = '', ingrediente = '') {
       const nuevoCampo = document.createElement('div');
       nuevoCampo.className = 'editable';
@@ -165,16 +187,25 @@
       inputCantidad.value = cantidad;
       inputCantidad.style.width = '15%'; // Estilo específico para cantidades
 
-      const inputIngrediente = document.createElement('input');
-      inputIngrediente.type = 'text';
-      inputIngrediente.value = ingrediente;
-      inputIngrediente.style.width = '75%'; // Estilo específico para ingredientes
+      const selectIngrediente = document.createElement('select');
+      selectIngrediente.style.width = '75%'; // Estilo específico para ingredientes
+
+      // Agrega opciones al desplegable
+      opcionesIngredientes.forEach(opcion => {
+        const option = document.createElement('option');
+        option.value = opcion;
+        option.text = opcion;
+        selectIngrediente.appendChild(option);
+      });
+
+      // Selecciona la opción por defecto
+      selectIngrediente.value = ingrediente;
 
       const iconPencil = document.createElement('div');
       iconPencil.className = 'icon-pencil';
       iconPencil.onclick = function () {
         hacerEditable(inputCantidad.id);
-        hacerEditable(inputIngrediente.id);
+        hacerEditable(selectIngrediente.id);
       };
 
       const iconTrash = document.createElement('div');
@@ -185,14 +216,12 @@
 
       nuevoCampo.appendChild(iconTrash);
       nuevoCampo.appendChild(inputCantidad);
-      nuevoCampo.appendChild(inputIngrediente);
-      
+      nuevoCampo.appendChild(selectIngrediente);
       
 
       seccionIngredientes.appendChild(nuevoCampo);
-
-      
     }
+
 
    function guardarEdicion() {
   // Obtener la tabla
@@ -205,10 +234,11 @@
   const camposEdicion = document.querySelectorAll('.editable');
   camposEdicion.forEach(campo => {
     const inputCantidad = campo.querySelector('input:nth-child(2)');
-    const inputIngrediente = campo.querySelector('input:nth-child(3)');
+    const selectIngrediente = campo.querySelector('select');
 
-    if (inputCantidad.value.trim() !== '' && inputIngrediente.value.trim() !== '') {
-      cantidadesIngredientes += `${inputCantidad.value.trim()} ${inputIngrediente.value.trim()}, `;
+    if (inputCantidad.value.trim() !== '') {
+      const cantidadIngrediente = `${inputCantidad.value.trim()} ${selectIngrediente.value.trim()}`;
+      cantidadesIngredientes += `${cantidadIngrediente}, `;
     }
   });
 
@@ -220,60 +250,34 @@
   for (let i = 1; i < tablaReceta.rows.length; i++) {
     const tituloFila = tablaReceta.rows[i].cells[0].innerText.trim();
     if (tituloFila === tituloEditable) {
-      filaEncontrada = tablaReceta.rows[i];
-      break;
+      // Si se encuentra la fila, preguntar si se desea sobrescribir la receta
+      const confirmacion = window.confirm('¿Desea sobrescribir la receta existente con este título?');
+      if (confirmacion) {
+        // Si el usuario elige sobrescribir, actualizar los datos
+        filaEncontrada = tablaReceta.rows[i];
+        filaEncontrada.cells[0].innerText = tituloEditable; // Actualizar título
+
+        // Actualizar la cadena de cantidades e ingredientes en la última celda
+        filaEncontrada.cells[8].innerText = cantidadesIngredientes;
+      } else {
+        // Si el usuario elige no sobrescribir, abortar la función
+        return;
+      }
     }
   }
 
-  // Si se encuentra la fila, actualizar los datos
-  if (filaEncontrada) {
-    filaEncontrada.cells[0].innerText = tituloEditable; // Actualizar título
-
-    // Actualizar la cadena de cantidades e ingredientes en la última celda
-    filaEncontrada.cells[8].innerText = cantidadesIngredientes;
-  } else {
-    // Si no se encuentra la fila, mostrar un cuadro de diálogo
-if (!filaEncontrada) {
-  const confirmacion = window.confirm('¿Desea guardar una nueva receta?');
-  if (confirmacion) {
-    // Si el usuario elige guardar nueva receta, llamar a la función correspondiente
-    guardarNuevaReceta();
-    return; // Salir de la función para evitar la limpieza del área de edición
-  } else {
-    // Si el usuario elige cancelar, puedes realizar alguna acción adicional o simplemente salir
-    return;
+  // Si no se encuentra la fila, mostrar un cuadro de diálogo
+  if (!filaEncontrada) {
+    const confirmacion = window.confirm('¿Desea guardar una nueva receta?');
+    if (confirmacion) {
+      // Si el usuario elige guardar nueva receta, llamar a la función correspondiente
+      guardarNuevaReceta();
+      return; // Salir de la función para evitar la limpieza del área de edición
+    } else {
+      // Si el usuario elige cancelar, puedes realizar alguna acción adicional o simplemente salir
+      return;
+    }
   }
-}
-  }
-
-  // Si se encuentra la fila, preguntar si se desea sobrescribir la receta
-if (filaEncontrada) {
-  const confirmacion = window.confirm('¿Desea sobrescribir la receta existente con este título?');
-  if (confirmacion) {
-    // Si el usuario elige sobrescribir, actualizar los datos
-    filaEncontrada.cells[0].innerText = tituloEditable; // Actualizar título
-    filaEncontrada.cells[8].innerText = cantidadesIngredientes; // Actualizar cantidades e ingredientes
-  } else {
-    // Si el usuario elige no sobrescribir, abortar la función
-    return;
-  }
-}
-}
-
-function limpiarDatosTituloIngredientes() {
-   // Limpiar el área de edición del título y los ingredientes
-  document.getElementById('tituloEditable').value = 'Escribe aquí el nombre de tu receta...';
-  document.getElementById('ingredientesReceta').value = '';
-
-  // Limpiar los campos editables individuales
-  const camposEdicion = document.querySelectorAll('.editable');
-  camposEdicion.forEach(campo => {
-    const inputCantidad = campo.querySelector('input:nth-child(2)');
-    const inputIngrediente = campo.querySelector('input:nth-child(3)');
-
-    inputCantidad.value = '';
-    inputIngrediente.value = '';
-  });
 }
 
 function guardarNuevaReceta() {
@@ -297,10 +301,11 @@ function guardarNuevaReceta() {
 
       camposEdicion.forEach(campo => {
         const inputCantidad = campo.querySelector('input:nth-child(2)');
-        const inputIngrediente = campo.querySelector('input:nth-child(3)');
+        const selectIngrediente = campo.querySelector('select');
 
-        if (inputCantidad.value.trim() !== '' && inputIngrediente.value.trim() !== '') {
-          cantidadesIngredientes += `${inputCantidad.value.trim()} ${inputIngrediente.value.trim()}, `;
+        if (inputCantidad.value.trim() !== '') {
+          const cantidadIngrediente = `${inputCantidad.value.trim()} ${selectIngrediente.value.trim()}`;
+          cantidadesIngredientes += `${cantidadIngrediente}, `;
         }
       });
 
@@ -309,13 +314,8 @@ function guardarNuevaReceta() {
 
       // Asignar la cadena de cantidades e ingredientes a la nueva celda
       nuevaCelda.innerText = cantidadesIngredientes;
-    } 
+    }
   }
-
- 
-
- 
- 
 }
 
 
