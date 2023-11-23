@@ -1,3 +1,1 @@
-[build]
-  command = "npm run build"  # o el comando que necesitas para construir tu aplicación
-  publish = "dist"  # o el directorio que contiene tus archivos estáticos
+
